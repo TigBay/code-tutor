@@ -263,3 +263,37 @@ touch y'
     'rm $HOME/scratch.txt' \
     '{ ls; pwd; }'
 }
+
+# The portable fallback runs where realpath has no -m (macOS, busybox). Where
+# GNU realpath is available, both must agree.
+@test "the portable realpath fallback matches GNU realpath -m" {
+  realpath -m / >/dev/null 2>&1 || skip "GNU realpath -m not available"
+  mkdir -p "$P/src/real" "$BATS_TEST_TMPDIR/outside"
+  touch "$P/src/real/Foo.php"
+  ln -s real "$P/src/link"
+  ln -s src/real/Foo.php "$P/LEARNINGS.md"
+  ln -s "$BATS_TEST_TMPDIR/outside" "$P/out"
+  ln -s missing-target "$P/dangling"
+
+  local path
+  for path in \
+    "$P" "$P/" "$P/src/real/Foo.php" "$P/src/link/Foo.php" "$P/src/link/New.php" \
+    "$P/LEARNINGS.md" "$P/out/x.txt" "$P/dangling" "$P/new/dir/file.txt" \
+    "$P/src/../src/./real//Foo.php" "$P/new/../x" "$P/src/link/../.." "/" "/tmp"; do
+    if [ "$(ct__realpath_portable "$path")" != "$(realpath -m -- "$path")" ]; then
+      echo "differs for $path: $(ct__realpath_portable "$path") vs $(realpath -m -- "$path")" >&2
+      return 1
+    fi
+  done
+}
+
+@test "ct_realpath returns a single line even when realpath fails half way" {
+  mkdir -p "$BATS_TEST_TMPDIR/bin"
+  # a realpath that prints something and then fails, like busybox with -m
+  printf '#!/bin/sh\necho "$3"\nexit 1\n' >"$BATS_TEST_TMPDIR/bin/realpath"
+  chmod +x "$BATS_TEST_TMPDIR/bin/realpath"
+  PATH="$BATS_TEST_TMPDIR/bin:$PATH" run ct_realpath "$P/src/Foo.php"
+  [ "$status" -eq 0 ]
+  [ "${#lines[@]}" -eq 1 ]
+  [[ "$output" == */src/Foo.php ]]
+}

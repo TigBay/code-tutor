@@ -33,8 +33,10 @@ submit_input() {
 }
 
 # run_hook <script> <json>: run a hook script with JSON on stdin.
+# Claude Code starts hooks with the "bash" on PATH; CT_TEST_BASH picks another
+# one, such as /bin/bash 3.2 on macOS.
 run_hook() {
-  run bash "$REPO_ROOT/scripts/$1" <<<"$2"
+  run "${CT_TEST_BASH:-bash}" "$REPO_ROOT/scripts/$1" <<<"$2"
 }
 
 # tool_input_json <tool> <tool_input json>: PreToolUse hook input.

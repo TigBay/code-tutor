@@ -91,6 +91,7 @@ context() {
 }
 
 @test "an unwritable data dir blocks with a message instead of a false confirmation" {
+  [ "$(id -u)" -ne 0 ] || skip "root ignores file permissions (for example in a container)"
   chmod 500 "$CLAUDE_PLUGIN_DATA"
   run_hook on-command-expand.sh "$(expand_input code-tutor:tutor high)"
   chmod 700 "$CLAUDE_PLUGIN_DATA"
