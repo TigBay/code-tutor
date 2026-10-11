@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-11
+
+First release.
+
 ### Added
 
 - Plugin manifest with `default_mode` and `default_level` options in `/config`.
@@ -26,3 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (where, hint, your turn), structured explanations, and short "why" notes after edits in mode `off`.
 - Eval suite for `claude plugin eval` with six cases on a PHP fixture and a no-plugin baseline
   (mean Δ +0.76, see `evals/README.md`).
+- Hooks run with bash 3.2 (the default on macOS) and with BSD or busybox tools.
+- CI on every push: manifest validation, shellcheck, and the bats suite on Ubuntu, macOS (bash 3.2)
+  and Alpine (busybox). The eval suite runs on demand.
+
+[Unreleased]: https://github.com/TigBay/code-tutor/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/TigBay/code-tutor/releases/tag/v0.1.0
