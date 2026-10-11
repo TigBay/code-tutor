@@ -22,3 +22,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `/code-tutor:tutor` and `/code-tutor:tutor-review`.
 - `/code-tutor:tutor-review [save] [path|git-ref]`: mentor-style review of your own change (correctness,
   edge cases, style, alternatives) and a discussion of the learnings, optionally appended to `LEARNINGS.md`.
+- Optional output style `code-tutor:tutor` (`/output-style code-tutor:tutor`): structured hints
+  (where, hint, your turn), structured explanations, and short "why" notes after edits in mode `off`.
