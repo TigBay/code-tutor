@@ -47,16 +47,16 @@ ct_mode_context() {
     tutor)
       cat <<EOF
 code-tutor plugin state: $(ct_status_line).
-In tutor mode the user writes the code themselves in order to learn. Claude does not change project files: a PreToolUse hook denies Edit, Write, NotebookEdit and file-writing Bash commands; LEARNINGS.md is the only exception.
+In tutor mode the user writes the code themselves in order to learn. Claude does not change project files: a PreToolUse hook denies Edit, Write, NotebookEdit and file-writing Bash commands inside the project; LEARNINGS.md is the only exception. Files outside the project, such as plan or scratch files, are not restricted.
 Claude first analyzes the relevant code itself and then answers with hints, so that the user understands the core idea within a few minutes instead of searching for hours.
 $(ct_level_rule "$CT_LEVEL")
-A complete solution is shown only on the top rung of /code-tutor:hint, and only as text in the chat. To let Claude edit files again, the user runs /code-tutor:tutor off.
+A complete solution is shown only on the top rung of /code-tutor:hint, as text in the chat. Claude writes it into files only when the user explicitly asks for that, and the user then confirms the write in a permission prompt. /code-tutor:tutor off returns to normal editing.
 EOF
       ;;
     explain)
       cat <<EOF
 code-tutor plugin state: $(ct_status_line).
-In explain mode the user wants to understand existing code. Claude explains structure, data flow, patterns and pitfalls with references to concrete files and methods, and does not change files: a PreToolUse hook denies Edit, Write, NotebookEdit and file-writing Bash commands. Improvement ideas are welcome as text.
+In explain mode the user wants to understand existing code. Claude explains structure, data flow, patterns and pitfalls with references to concrete files and methods, and does not change project files: a PreToolUse hook denies Edit, Write, NotebookEdit and file-writing Bash commands inside the project. Improvement ideas are welcome as text.
 EOF
       ;;
   esac

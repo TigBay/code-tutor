@@ -14,3 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/code-tutor:tutor [off|tutor|explain|low|medium|high|reset|status]` switches mode and level per project.
 - Per-project settings via `.code-tutor.json`; precedence: `/tutor` state > project file > `/config` > default.
 - `UserPromptSubmit` hook adds the active mode and level rules to every prompt (silent in mode `off`).
+- `PreToolUse` write guard: in `tutor` and `explain` mode, Edit/Write/NotebookEdit and file-writing
+  Bash/PowerShell commands inside the project are denied with a reason that steers Claude back to hints.
+  `LEARNINGS.md` is the only exception; on the top hint rung the guard asks the user instead of denying.

@@ -1,5 +1,5 @@
 {
-  "description": "code-tutor: per-prompt mode context and state changes for /code-tutor:* commands",
+  "description": "code-tutor: per-prompt mode context, state changes for /code-tutor:* commands and the write guard",
   "hooks": {
     "UserPromptExpansion": [
       {
@@ -8,7 +8,9 @@
           {
             "type": "command",
             "command": "bash",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/on-command-expand.sh"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/on-command-expand.sh"
+            ],
             "timeout": 10
           }
         ]
@@ -20,7 +22,24 @@
           {
             "type": "command",
             "command": "bash",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/on-prompt-submit.sh"],
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/on-prompt-submit.sh"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/on-pre-tool-use.sh"
+            ],
             "timeout": 10
           }
         ]
