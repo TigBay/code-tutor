@@ -17,3 +17,22 @@ setup_env() {
 write_project_file() {
   printf '%s\n' "$1" >"$CLAUDE_PROJECT_DIR/.code-tutor.json"
 }
+
+# expand_input <command_name> <command_args>: UserPromptExpansion hook input.
+expand_input() {
+  jq -n --arg name "$1" --arg args "$2" --arg cwd "$CLAUDE_PROJECT_DIR" \
+    '{hook_event_name: "UserPromptExpansion", expansion_type: "slash_command",
+      command_name: $name, command_args: $args, command_source: "plugin",
+      prompt: ("/" + $name + " " + $args), cwd: $cwd}'
+}
+
+# submit_input <prompt>: UserPromptSubmit hook input.
+submit_input() {
+  jq -n --arg prompt "$1" --arg cwd "$CLAUDE_PROJECT_DIR" \
+    '{hook_event_name: "UserPromptSubmit", prompt: $prompt, cwd: $cwd}'
+}
+
+# run_hook <script> <json>: run a hook script with JSON on stdin.
+run_hook() {
+  run bash "$REPO_ROOT/scripts/$1" <<<"$2"
+}
