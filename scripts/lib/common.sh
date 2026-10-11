@@ -7,10 +7,16 @@
 #   1. state file   ${CLAUDE_PLUGIN_DATA}/projects/<sha256(project)>.json (set by /tutor)
 #   2. project file <project>/.code-tutor.json                            (checked in by a team)
 #   3. userConfig   CLAUDE_PLUGIN_OPTION_DEFAULT_MODE / _LEVEL             (/config)
-#   4. built-in     off / medium
+#   4. built-in     CT_DEFAULT_MODE / CT_DEFAULT_LEVEL
+#
+# userConfig defaults from plugin.json are NOT exported to hooks (only values
+# saved in /config are), so the built-in defaults must match plugin.json;
+# tests/manifest.bats checks that.
 
 readonly CT_MODES="off tutor explain"
 readonly CT_LEVELS="low medium high"
+readonly CT_DEFAULT_MODE="off"
+readonly CT_DEFAULT_LEVEL="medium"
 readonly CT_MAX_RUNG=5
 readonly CT_PROJECT_FILE=".code-tutor.json"
 
@@ -23,7 +29,7 @@ CT_INPUT=""
 # Hooks fail open, so normal Claude Code behavior continues without the plugin.
 ct_require_jq() {
   command -v jq >/dev/null 2>&1 && return 0
-  printf '{"systemMessage":"code-tutor: jq is not installed, the plugin is inactive. Install it with: sudo apt install jq"}\n'
+  printf '{"systemMessage":"code-tutor: jq is not installed, so the plugin is inactive. Install jq (for example: sudo apt install jq, brew install jq)."}\n'
   exit 0
 }
 
@@ -92,7 +98,7 @@ ct_resolve() {
   IFS="$CT_SEP" read -r s_mode s_level s_rung < <(ct_read_fields "$(ct_state_file "$project")")
   IFS="$CT_SEP" read -r p_mode p_level _unused < <(ct_read_fields "$project/$CT_PROJECT_FILE")
 
-  CT_MODE="off"
+  CT_MODE="$CT_DEFAULT_MODE"
   CT_MODE_SOURCE="default"
   if ct_is_one_of "$s_mode" "$CT_MODES"; then
     CT_MODE="$s_mode"; CT_MODE_SOURCE="state"
@@ -102,7 +108,7 @@ ct_resolve() {
     CT_MODE="$CLAUDE_PLUGIN_OPTION_DEFAULT_MODE"; CT_MODE_SOURCE="config"
   fi
 
-  CT_LEVEL="medium"
+  CT_LEVEL="$CT_DEFAULT_LEVEL"
   CT_LEVEL_SOURCE="default"
   if ct_is_one_of "$s_level" "$CT_LEVELS"; then
     CT_LEVEL="$s_level"; CT_LEVEL_SOURCE="state"
@@ -129,23 +135,25 @@ ct_start_rung() {
 
 # ct_state_update <project> <jq-filter> [jq args...]
 # Apply a jq filter to the project's state and write it atomically.
+# Returns non-zero, leaving the old state untouched, when it cannot write.
 ct_state_update() {
   local project="$1" filter="$2"
   shift 2
   local file dir current tmp
   file="$(ct_state_file "$project")"
   dir="$(dirname "$file")"
-  mkdir -p "$dir"
+  mkdir -p "$dir" 2>/dev/null || return 1
 
   current="{}"
   if [[ -f "$file" ]] && jq -e 'type == "object"' "$file" >/dev/null 2>&1; then
     current="$(cat "$file")"
   fi
 
-  tmp="$(mktemp "$dir/.state.XXXXXX")"
+  tmp="$(mktemp "$dir/.state.XXXXXX" 2>/dev/null)" || return 1
   if jq --arg project "$project" --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$@" \
-      "$filter | .project = \$project | .updated_at = \$now" <<<"$current" >"$tmp"; then
-    mv -f "$tmp" "$file"
+      "$filter | .project = \$project | .updated_at = \$now" <<<"$current" >"$tmp" &&
+    mv -f "$tmp" "$file"; then
+    return 0
   else
     rm -f "$tmp"
     return 1
@@ -154,7 +162,7 @@ ct_state_update() {
 
 # ct_state_clear <project>: drop the per-project override.
 ct_state_clear() {
-  rm -f "$(ct_state_file "$1")"
+  rm -f "$(ct_state_file "$1")" 2>/dev/null
 }
 
 # ct_emit_context <event> <text>: print hook output that adds context for Claude.

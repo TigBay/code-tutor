@@ -142,6 +142,20 @@ setup() {
 
 # --- helpers -------------------------------------------------------------------
 
+@test "CLAUDE_PROJECT_DIR wins over cwd from the hook input" {
+  CT_INPUT='{"cwd":"/somewhere/else"}'
+  [ "$(ct_project_dir)" = "$CLAUDE_PROJECT_DIR" ]
+}
+
+@test "project paths with spaces and quotes round-trip through the state" {
+  weird="$BATS_TEST_TMPDIR/my \"odd\" project's dir"
+  mkdir -p "$weird"
+  ct_state_update "$weird" '.mode = "explain"'
+  ct_resolve "$weird"
+  [ "$CT_MODE" = explain ]
+  [ "$(jq -r .project "$(ct_state_file "$weird")")" = "$weird" ]
+}
+
 @test "project dir falls back to cwd from the hook input" {
   unset CLAUDE_PROJECT_DIR
   CT_INPUT='{"cwd":"/srv/app/"}'

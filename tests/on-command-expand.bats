@@ -89,3 +89,12 @@ context() {
   done
   [ ! -f "$(ct_state_file "$CLAUDE_PROJECT_DIR")" ]
 }
+
+@test "an unwritable data dir blocks with a message instead of a false confirmation" {
+  chmod 500 "$CLAUDE_PLUGIN_DATA"
+  run_hook on-command-expand.sh "$(expand_input code-tutor:tutor high)"
+  chmod 700 "$CLAUDE_PLUGIN_DATA"
+  [ "$status" -eq 0 ]
+  [ "$(jq -r .decision <<<"$output")" = block ]
+  [[ "$(jq -r .reason <<<"$output")" == *"could not save the setting"* ]]
+}

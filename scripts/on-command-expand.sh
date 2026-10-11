@@ -24,18 +24,23 @@ block() {
   exit 0
 }
 
+# save_failed: block instead of letting Claude confirm a change that never happened.
+save_failed() {
+  block "code-tutor: could not save the setting in $(ct_data_dir). Check that the directory is writable."
+}
+
 handle_tutor() {
   local project="$1" arg="$2"
 
   case "$arg" in
     off | tutor | explain)
-      ct_state_update "$project" '.mode = $mode | del(.hint_rung)' --arg mode "$arg"
+      ct_state_update "$project" '.mode = $mode | del(.hint_rung)' --arg mode "$arg" || save_failed
       ;;
     low | medium | high)
-      ct_state_update "$project" '.mode = "tutor" | .level = $level | del(.hint_rung)' --arg level "$arg"
+      ct_state_update "$project" '.mode = "tutor" | .level = $level | del(.hint_rung)' --arg level "$arg" || save_failed
       ;;
     reset)
-      ct_state_clear "$project"
+      ct_state_clear "$project" || save_failed
       ;;
     status | "")
       ;;
