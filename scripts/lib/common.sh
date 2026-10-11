@@ -77,25 +77,29 @@ ct_state_file() {
   printf '%s/projects/%s.json\n' "$(ct_data_dir)" "$(ct_hash "$1")"
 }
 
-# ct_read_fields <file>: print "mode<SEP>level<SEP>hint_rung" of a JSON file.
-# Missing or corrupt files yield empty fields.
+# ct_read_fields <file>: print "mode<SEP>level<SEP>hint_rung<SEP>hint_session"
+# of a JSON file. Missing or corrupt files yield empty fields.
 ct_read_fields() {
   local file="$1"
   if [[ -f "$file" ]]; then
     jq -r --arg sep "$CT_SEP" \
-      '[.mode // "", .level // "", (.hint_rung // "" | tostring)] | join($sep)' \
+      '[.mode // "", .level // "", (.hint_rung // "" | tostring), .hint_session // ""] | join($sep)' \
       "$file" 2>/dev/null && return 0
   fi
-  printf '%s%s\n' "$CT_SEP" "$CT_SEP"
+  printf '%s%s%s\n' "$CT_SEP" "$CT_SEP" "$CT_SEP"
 }
 
-# ct_resolve <project>: set CT_MODE, CT_LEVEL, CT_RUNG and CT_MODE_SOURCE, CT_LEVEL_SOURCE.
+# ct_resolve <project> [session_id]
+# Set CT_MODE, CT_LEVEL, CT_RUNG and CT_MODE_SOURCE, CT_LEVEL_SOURCE.
+# The hint rung belongs to the session that climbed the ladder: when a
+# session_id is given and differs from the stored one (new session, /clear),
+# CT_RUNG is empty and the ladder starts again at the level's rung.
 # shellcheck disable=SC2034 # the CT_* results are read by the sourcing hook scripts
 ct_resolve() {
-  local project="$1"
-  local s_mode s_level s_rung p_mode p_level _unused
+  local project="$1" session="${2:-}"
+  local s_mode s_level s_rung s_session p_mode p_level _unused
 
-  IFS="$CT_SEP" read -r s_mode s_level s_rung < <(ct_read_fields "$(ct_state_file "$project")")
+  IFS="$CT_SEP" read -r s_mode s_level s_rung s_session < <(ct_read_fields "$(ct_state_file "$project")")
   IFS="$CT_SEP" read -r p_mode p_level _unused < <(ct_read_fields "$project/$CT_PROJECT_FILE")
 
   CT_MODE="$CT_DEFAULT_MODE"
@@ -119,12 +123,19 @@ ct_resolve() {
   fi
 
   CT_RUNG=""
-  if [[ "$s_rung" =~ ^[1-9][0-9]*$ ]] && (( s_rung <= CT_MAX_RUNG )); then
+  if [[ "$s_rung" =~ ^[1-9][0-9]*$ ]] && (( s_rung <= CT_MAX_RUNG )) &&
+    [[ -z "$session" || "$s_session" == "$session" ]]; then
     CT_RUNG="$s_rung"
   fi
 }
 
-# ct_start_rung <level>: first hint rung for a level.
+# ct_session: session_id from the hook input (empty when unknown).
+ct_session() {
+  ct_input .session_id
+}
+
+# ct_start_rung <level>: the rung a normal answer on this level is on.
+# The first /code-tutor:hint goes one rung higher.
 ct_start_rung() {
   case "$1" in
     low) echo 1 ;;

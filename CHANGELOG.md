@@ -17,3 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `PreToolUse` write guard: in `tutor` and `explain` mode, Edit/Write/NotebookEdit and file-writing
   Bash/PowerShell commands inside the project are denied with a reason that steers Claude back to hints.
   `LEARNINGS.md` is the only exception; on the top hint rung the guard asks the user instead of denying.
+- `/code-tutor:hint [reset]`: hint ladder with five rungs (low, medium, high, skeleton, full solution as text).
+  The first hint goes one rung above the level; the ladder is bound to the session and resets on `/clear`,
+  `/code-tutor:tutor` and `/code-tutor:tutor-review`.
+- `/code-tutor:tutor-review [save] [path|git-ref]`: mentor-style review of your own change (correctness,
+  edge cases, style, alternatives) and a discussion of the learnings, optionally appended to `LEARNINGS.md`.

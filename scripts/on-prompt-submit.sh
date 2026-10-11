@@ -14,7 +14,7 @@ source "$SCRIPT_DIR/lib/context.sh"
 
 ct_require_jq
 ct_read_input
-ct_resolve "$(ct_project_dir)"
+ct_resolve "$(ct_project_dir)" "$(ct_session)"
 
 context="$(ct_mode_context)"
 [[ -n "$context" ]] || exit 0

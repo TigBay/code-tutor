@@ -45,7 +45,7 @@ main() {
 
   local project tool path command reason
   project="$(ct_project_dir)"
-  ct_resolve "$project"
+  ct_resolve "$project" "$(ct_session)"
   [[ "$CT_MODE" != off ]] || exit 0
 
   CT_GUARD_PROJECT="$(ct_realpath "$project")"
