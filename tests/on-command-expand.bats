@@ -82,7 +82,7 @@ context() {
 }
 
 @test "other commands are ignored" {
-  for name in code-tutor:tutor-review other-plugin:tutor; do
+  for name in code-tutor:unknown other-plugin:tutor other-plugin:hint; do
     run_hook on-command-expand.sh "$(expand_input "$name" low)"
     [ "$status" -eq 0 ]
     [ -z "$output" ]

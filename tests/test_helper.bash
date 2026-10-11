@@ -18,18 +18,18 @@ write_project_file() {
   printf '%s\n' "$1" >"$CLAUDE_PROJECT_DIR/.code-tutor.json"
 }
 
-# expand_input <command_name> <command_args>: UserPromptExpansion hook input.
+# expand_input <command_name> <command_args> [session_id]: UserPromptExpansion hook input.
 expand_input() {
-  jq -n --arg name "$1" --arg args "$2" --arg cwd "$CLAUDE_PROJECT_DIR" \
+  jq -n --arg name "$1" --arg args "$2" --arg session "${3:-session-1}" --arg cwd "$CLAUDE_PROJECT_DIR" \
     '{hook_event_name: "UserPromptExpansion", expansion_type: "slash_command",
       command_name: $name, command_args: $args, command_source: "plugin",
-      prompt: ("/" + $name + " " + $args), cwd: $cwd}'
+      prompt: ("/" + $name + " " + $args), cwd: $cwd, session_id: $session}'
 }
 
-# submit_input <prompt>: UserPromptSubmit hook input.
+# submit_input <prompt> [session_id]: UserPromptSubmit hook input.
 submit_input() {
-  jq -n --arg prompt "$1" --arg cwd "$CLAUDE_PROJECT_DIR" \
-    '{hook_event_name: "UserPromptSubmit", prompt: $prompt, cwd: $cwd}'
+  jq -n --arg prompt "$1" --arg session "${2:-session-1}" --arg cwd "$CLAUDE_PROJECT_DIR" \
+    '{hook_event_name: "UserPromptSubmit", prompt: $prompt, cwd: $cwd, session_id: $session}'
 }
 
 # run_hook <script> <json>: run a hook script with JSON on stdin.

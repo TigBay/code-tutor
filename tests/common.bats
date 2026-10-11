@@ -128,6 +128,17 @@ setup() {
   [ "$CT_RUNG" = 4 ]
 }
 
+@test "hint rung belongs to the session that set it" {
+  ct_state_update "$CLAUDE_PROJECT_DIR" '.hint_rung = 4 | .hint_session = "s1"'
+  ct_resolve "$CLAUDE_PROJECT_DIR" s1
+  [ "$CT_RUNG" = 4 ]
+  ct_resolve "$CLAUDE_PROJECT_DIR" s2
+  [ -z "$CT_RUNG" ]
+  # without a known session the stored rung is used as is
+  ct_resolve "$CLAUDE_PROJECT_DIR"
+  [ "$CT_RUNG" = 4 ]
+}
+
 @test "out-of-range hint rung is ignored" {
   ct_state_update "$CLAUDE_PROJECT_DIR" '.hint_rung = 9'
   ct_resolve "$CLAUDE_PROJECT_DIR"

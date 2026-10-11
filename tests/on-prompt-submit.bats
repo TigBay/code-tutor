@@ -49,10 +49,24 @@ context() {
   [[ "$(context)" == *"mode=tutor (from /config)"* ]]
 }
 
-@test "the hint rung is shown when set" {
-  ct_state_update "$CLAUDE_PROJECT_DIR" '.mode = "tutor" | .hint_rung = 3'
-  run_hook on-prompt-submit.sh "$(submit_input 'next')"
-  [[ "$(context)" == *"hint rung=3/5"* ]]
+@test "a raised hint rung is shown with its rule for the same session" {
+  ct_state_update "$CLAUDE_PROJECT_DIR" '.mode = "tutor" | .hint_rung = 4 | .hint_session = "s1"'
+  run_hook on-prompt-submit.sh "$(submit_input 'next' s1)"
+  [[ "$(context)" == *"hint rung=4/5"* ]]
+  [[ "$(context)" == *"stay on rung 4 of 5: show a skeleton"* ]]
+}
+
+@test "a new session starts at the level's rung again" {
+  ct_state_update "$CLAUDE_PROJECT_DIR" '.mode = "tutor" | .hint_rung = 4 | .hint_session = "s1"'
+  run_hook on-prompt-submit.sh "$(submit_input 'next' s2)"
+  [[ "$(context)" != *"hint rung"* ]]
+  [[ "$(context)" != *"Hint ladder"* ]]
+}
+
+@test "the context has no empty lines" {
+  ct_state_update "$CLAUDE_PROJECT_DIR" '.mode = "tutor"'
+  run_hook on-prompt-submit.sh "$(submit_input 'x')"
+  [[ "$(context)" != *$'\n\n'* ]]
 }
 
 @test "a missing jq yields a visible system message instead of an error" {
