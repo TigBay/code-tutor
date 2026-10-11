@@ -24,3 +24,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   edge cases, style, alternatives) and a discussion of the learnings, optionally appended to `LEARNINGS.md`.
 - Optional output style `code-tutor:tutor` (`/output-style code-tutor:tutor`): structured hints
   (where, hint, your turn), structured explanations, and short "why" notes after edits in mode `off`.
+- Eval suite for `claude plugin eval` with six cases on a PHP fixture and a no-plugin baseline
+  (mean Δ +0.76, see `evals/README.md`).
