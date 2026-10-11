@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  # Pinned so that a new Claude Code release cannot change the validation result unnoticed.
+  CLAUDE_CODE_VERSION: "2.1.296"
+  DISABLE_AUTOUPDATER: "1"
+
+jobs:
+  validate:
+    name: Validate manifests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Claude Code
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash -s "$CLAUDE_CODE_VERSION"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      # "validate ." checks only the marketplace when one is present, so the plugin
+      # manifest is validated on its own as well.
+      - name: Validate marketplace
+        run: claude plugin validate . --strict
+      - name: Validate plugin
+        run: claude plugin validate .claude-plugin/plugin.json --strict
+
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - run: shellcheck --version
+      - run: shellcheck scripts/*.sh scripts/lib/*.sh tests/test_helper.bash evals/fixtures/*.sh evals/*/scaffold.sh
+
+  bats:
+    name: bats (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu, bash 5
+            os: ubuntu-24.04
+          # Claude Code starts hooks with the "bash" on PATH, which is bash 3.2 on a stock Mac.
+          - name: macOS, bash 3.2
+            os: macos-latest
+            test_bash: /bin/bash
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install bats and jq
+        run: |
+          if [ "$RUNNER_OS" = macOS ]; then
+            brew install bats-core jq
+          else
+            sudo apt-get update -q && sudo apt-get install -y -q bats jq
+          fi
+      - name: Run tests
+        env:
+          CT_TEST_BASH: ${{ matrix.test_bash }}
+        run: |
+          "${CT_TEST_BASH:-bash}" --version | head -1
+          bats tests/
+
+  bats-busybox:
+    name: bats (Alpine, bash 3.2, busybox)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Run tests in the bash:3.2 image
+        run: docker run --rm -v "$PWD:/code:ro" -w /code bash:3.2 sh -c 'apk add --no-cache jq bats git >/dev/null && bats tests/'
