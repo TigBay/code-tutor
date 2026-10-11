@@ -29,7 +29,7 @@ ct_status_line() {
 # Rungs 1-3 are the levels low, medium and high.
 ct_rung_rule() {
   case "$1" in
-    1) echo "point to the relevant area of the code, give the direction and 2-4 targeted guiding questions (for example \"How does X relate to Y?\"). No method names, no steps, no code." ;;
+    1) echo "point to the relevant area of the code, give the direction and 2-4 targeted guiding questions (for example \"How does X relate to Y?\") that let the user find the cause. The questions do not contain the fix, not as an either-or choice and not as an assumption such as \"after you move it\". No method names, no steps, no code." ;;
     2) echo "name the file and method, the concept or pattern that is needed and what has to change. No syntax, no pseudocode." ;;
     3) echo "name the file and method or line range, give concrete steps in order, name the fitting functions, classes or APIs, and add pseudocode where it helps. No complete solution." ;;
     4) echo "show a skeleton of the change with only the decisive lines written out and the rest left as TODO comments for the user. Still not the complete solution." ;;
