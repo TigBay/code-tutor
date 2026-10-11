@@ -19,8 +19,55 @@ CT_GUARD_PROJECT=""
 # (after xargs or find -exec), so "rm" without paths still counts as a write.
 CT_GUARD_DYNAMIC_ARGS=0
 
+# ct_realpath <path>: absolute path with symlinks resolved. The path does not
+# have to exist, like GNU "realpath -m". macOS and busybox have no -m, so
+# they use the portable fallback below.
 ct_realpath() {
-  realpath -m -- "$1" 2>/dev/null || printf '%s\n' "$1"
+  local resolved
+  if resolved="$(realpath -m -- "$1" 2>/dev/null)" && [[ -n "$resolved" && "$resolved" != *$'\n'* ]]; then
+    printf '%s\n' "$resolved"
+  else
+    ct__realpath_portable "$1"
+  fi
+}
+
+# ct__realpath_portable <path>: realpath -m with only bash, cd -P and readlink.
+# Follows a symlink in the last component, resolves the longest existing
+# directory physically and appends the rest, then removes "." and "..".
+ct__realpath_portable() {
+  local path="$1" dir rest="" target hops=0
+  [[ "$path" == /* ]] || path="$PWD/$path"
+
+  while [[ -L "$path" ]] && (( hops++ < 40 )); do
+    target="$(readlink -- "$path")"
+    [[ "$target" == /* ]] || target="${path%/*}/$target"
+    path="$target"
+  done
+
+  dir="$path"
+  while [[ -n "$dir" && ! -d "$dir" ]]; do
+    rest="/${dir##*/}$rest"
+    dir="${dir%/*}"
+  done
+  dir="$(cd -P -- "${dir:-/}" 2>/dev/null && pwd -P)" || dir="${dir:-/}"
+  [[ "$dir" != / ]] || dir=""
+
+  ct__normalize_path "$dir$rest"
+}
+
+# ct__normalize_path <absolute path>: remove empty, "." and ".." components.
+ct__normalize_path() {
+  local part out=""
+  local -a parts=()
+  IFS=/ read -ra parts <<<"$1"
+  for part in "${parts[@]}"; do
+    case "$part" in
+      "" | .) ;;
+      ..) out="${out%/*}" ;;
+      *) out="$out/$part" ;;
+    esac
+  done
+  printf '%s\n' "${out:-/}"
 }
 
 # ct__inside_project <path>: true unless the path is clearly outside the project.
@@ -160,7 +207,10 @@ ct__segment_reason() {
   local -a args=("${w[@]:i+1}")
   local -a paths=()
   local arg path j
-  mapfile -t paths < <(ct__non_options "${args[@]}")
+  # a read loop instead of mapfile, which bash 3.2 (macOS) does not have
+  while IFS= read -r path; do
+    paths+=("$path")
+  done < <(ct__non_options "${args[@]}")
 
   case "$cmd" in
     rm | rmdir | mv | touch | truncate | unlink | shred)

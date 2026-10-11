@@ -25,6 +25,13 @@ readonly CT_SEP=$'\x1f'
 
 CT_INPUT=""
 
+# macOS ships bash 3.2. Before bash 4.4, "set -u" reports an empty array
+# expansion ("${a[@]}") as an unbound variable, so nounset stays off there.
+# The tests run with nounset on a current bash, which still catches real typos.
+if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 4) )); then
+  set +u
+fi
+
 # ct_require_jq: exit cleanly with a visible message when jq is missing.
 # Hooks fail open, so normal Claude Code behavior continues without the plugin.
 ct_require_jq() {

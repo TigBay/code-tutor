@@ -95,7 +95,7 @@ handle_review() {
   # read -ra splits without glob expansion (an unquoted $args would expand "*")
   read -ra words <<<"$args" || true
   for word in "${words[@]}"; do
-    if [[ "${word,,}" == save ]]; then
+    if [[ "$(tr '[:upper:]' '[:lower:]' <<<"$word")" == save ]]; then
       save="yes"
     elif [[ -z "$target" ]]; then
       target="$word"
