@@ -11,3 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Plugin manifest with `default_mode` and `default_level` options in `/config`.
 - Marketplace file so the repository can be added with `/plugin marketplace add`.
+- `/code-tutor:tutor [off|tutor|explain|low|medium|high|reset|status]` switches mode and level per project.
+- Per-project settings via `.code-tutor.json`; precedence: `/tutor` state > project file > `/config` > default.
+- `UserPromptSubmit` hook adds the active mode and level rules to every prompt (silent in mode `off`).

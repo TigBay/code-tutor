@@ -1,0 +1,63 @@
+# shellcheck shell=bash
+#
+# Text building blocks that the hooks add to Claude's context.
+#
+# The wording is deliberately factual ("the user wants ...", "edits are denied")
+# rather than imperative system-style commands: the Claude Code docs note that
+# text framed as out-of-band instructions can trigger prompt-injection defenses.
+# Requires lib/common.sh.
+
+# ct_source_label <source>: human readable origin of a setting.
+ct_source_label() {
+  case "$1" in
+    state) echo "set for this project via /code-tutor:tutor" ;;
+    project) echo "from $CT_PROJECT_FILE" ;;
+    config) echo "from /config" ;;
+    *) echo "built-in default" ;;
+  esac
+}
+
+# ct_status_line: one line describing the resolved settings (after ct_resolve).
+ct_status_line() {
+  local line
+  line="mode=$CT_MODE ($(ct_source_label "$CT_MODE_SOURCE")), level=$CT_LEVEL ($(ct_source_label "$CT_LEVEL_SOURCE"))"
+  [[ -z "$CT_RUNG" ]] || line+=", hint rung=$CT_RUNG/$CT_MAX_RUNG"
+  printf '%s\n' "$line"
+}
+
+# ct_level_rule <level>: what a hint on this level contains.
+ct_level_rule() {
+  case "$1" in
+    low)
+      echo "Level low: point to the relevant area of the code, give the direction and 2-4 targeted guiding questions (for example \"How does X relate to Y?\"). No method names, no steps, no code."
+      ;;
+    high)
+      echo "Level high: name the file and method or line range, give concrete steps in order, name the fitting functions, classes or APIs, and add pseudocode where it helps. No complete solution."
+      ;;
+    *)
+      echo "Level medium: name the file and method, the concept or pattern that is needed and what has to change. No syntax, no pseudocode."
+      ;;
+  esac
+}
+
+# ct_mode_context: full context for the current mode (after ct_resolve).
+# Prints nothing in mode off, so the plugin costs no tokens there.
+ct_mode_context() {
+  case "$CT_MODE" in
+    tutor)
+      cat <<EOF
+code-tutor plugin state: $(ct_status_line).
+In tutor mode the user writes the code themselves in order to learn. Claude does not change project files: a PreToolUse hook denies Edit, Write, NotebookEdit and file-writing Bash commands; LEARNINGS.md is the only exception.
+Claude first analyzes the relevant code itself and then answers with hints, so that the user understands the core idea within a few minutes instead of searching for hours.
+$(ct_level_rule "$CT_LEVEL")
+A complete solution is shown only on the top rung of /code-tutor:hint, and only as text in the chat. To let Claude edit files again, the user runs /code-tutor:tutor off.
+EOF
+      ;;
+    explain)
+      cat <<EOF
+code-tutor plugin state: $(ct_status_line).
+In explain mode the user wants to understand existing code. Claude explains structure, data flow, patterns and pitfalls with references to concrete files and methods, and does not change files: a PreToolUse hook denies Edit, Write, NotebookEdit and file-writing Bash commands. Improvement ideas are welcome as text.
+EOF
+      ;;
+  esac
+}

@@ -1,0 +1,30 @@
+{
+  "description": "code-tutor: per-prompt mode context and state changes for /code-tutor:* commands",
+  "hooks": {
+    "UserPromptExpansion": [
+      {
+        "matcher": "^code-tutor:",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/on-command-expand.sh"],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/on-prompt-submit.sh"],
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
