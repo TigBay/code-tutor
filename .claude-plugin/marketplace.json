@@ -1,0 +1,17 @@
+{
+  "name": "code-tutor",
+  "description": "Marketplace for the code-tutor plugin: learn while working with Claude Code instead of letting it write everything.",
+  "owner": {
+    "name": "Tigran Baymann",
+    "url": "https://github.com/TigBay"
+  },
+  "plugins": [
+    {
+      "name": "code-tutor",
+      "source": "./",
+      "description": "Hints instead of finished code, code explanations without edits, a hint ladder and a review of your own solution.",
+      "category": "learning",
+      "tags": ["learning", "tutor", "hints"]
+    }
+  ]
+}

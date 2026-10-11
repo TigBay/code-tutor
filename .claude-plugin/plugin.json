@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "code-tutor",
+  "displayName": "Code Tutor",
+  "version": "0.1.0",
+  "description": "Turns Claude into a coding tutor: targeted hints instead of finished code, code explanations without edits, a hint ladder and a review of your own solution.",
+  "author": {
+    "name": "Tigran Baymann",
+    "url": "https://github.com/TigBay"
+  },
+  "homepage": "https://github.com/TigBay/code-tutor",
+  "repository": "https://github.com/TigBay/code-tutor",
+  "license": "MIT",
+  "keywords": ["learning", "tutor", "hints", "education", "code-review"],
+  "userConfig": {
+    "default_mode": {
+      "type": "string",
+      "title": "Default mode",
+      "description": "Mode used in projects without their own setting. off: normal behavior, tutor: hints instead of code, explain: explain code without changing it.",
+      "options": ["off", "tutor", "explain"],
+      "default": "off"
+    },
+    "default_level": {
+      "type": "string",
+      "title": "Default hint level",
+      "description": "How concrete hints are in tutor mode. low: direction and guiding questions, medium: file, method and concept, high: ordered steps, API names and pseudocode.",
+      "options": ["low", "medium", "high"],
+      "default": "medium"
+    }
+  }
+}
