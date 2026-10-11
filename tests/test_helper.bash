@@ -36,3 +36,9 @@ submit_input() {
 run_hook() {
   run bash "$REPO_ROOT/scripts/$1" <<<"$2"
 }
+
+# tool_input_json <tool> <tool_input json>: PreToolUse hook input.
+tool_input_json() {
+  jq -n --arg tool "$1" --argjson input "$2" --arg cwd "$CLAUDE_PROJECT_DIR" \
+    '{hook_event_name: "PreToolUse", tool_name: $tool, tool_input: $input, cwd: $cwd}'
+}
