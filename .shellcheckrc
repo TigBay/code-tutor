@@ -1,0 +1,7 @@
+# Resolve `source` paths relative to the script, not the current directory.
+source-path=SCRIPTDIR
+external-sources=true
+
+# jq filters are passed in single quotes on purpose: `$name` in them is a jq
+# variable bound with --arg, not a shell variable.
+disable=SC2016
