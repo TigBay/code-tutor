@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Demo GIF in the README, recorded with VHS from `docs/demo.tape`.
+
 ## [0.1.0] - 2026-10-11
 
 First release.

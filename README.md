@@ -7,9 +7,9 @@ A Claude Code plugin that helps you **learn while working with Claude**. In tuto
 mode, Claude analyzes your code and points you to the place and the next step, and
 you write the code yourself. A hook makes sure it stays that way.
 
-<!-- Demo GIF placeholder: record /code-tutor:tutor medium → task → /code-tutor:hint → /code-tutor:tutor-review save
-     and save it as docs/demo.gif, then replace this comment with: ![Demo](docs/demo.gif) -->
-> Demo GIF: coming soon.
+![Demo: in tutor mode, a request to fix a bug gets a hint instead of an edit, and /code-tutor:hint gives the next, more concrete step](docs/demo.gif)
+
+<sub>A real Claude Code session with code-tutor 0.1.0, idle time cut. Recorded with [VHS](https://github.com/charmbracelet/vhs) from [`docs/demo.tape`](docs/demo.tape).</sub>
 
 ## The problem
 
@@ -292,7 +292,6 @@ what it cannot see:
 - Detect file writes in interpreter one-liners such as `python -c` and `php -r`.
 - A status line with mode, level and rung.
 - More eval fixtures (TypeScript, Python) and an eval case for the hint ladder.
-- The demo GIF.
 
 ## Development
 
